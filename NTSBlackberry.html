@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NTS Radio Stream</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      margin-top: 30px;
+      background-color: black;
+      color: white;
+    }
+
+    .now-playing {
+      color: white;
+      font-size: 2rem;
+      margin-bottom: 5px;
+    }
+
+    #station-name {
+      color: red;
+      font-weight: bold;
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .stations-wrapper {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding: 0 10px;
+    }
+
+    .button-container {
+      position: relative;
+      width: 100%;
+      max-width: 300px;
+      flex: 1 1 300px;
+    }
+
+    .station-image {
+      width: 100%;
+      border-radius: 10px;
+      display: block;
+    }
+
+    button {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(255, 99, 71, 0.8);
+      color: white;
+      border: none;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      font-size: 24px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: rgba(255, 99, 71, 1);
+    }
+
+    audio {
+      display: none;
+    }
+
+    @media (max-width: 640px) {
+      .stations-wrapper {
+        flex-wrap: nowrap;
+        flex-direction: row;
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="now-playing">Now Playing:</div>
+  <span id="station-name">NTS Radio 1</span>
+
+  <div class="stations-wrapper">
+    <div class="button-container">
+      <img id="station-image-1" class="station-image" src="https://cdn-profiles.tunein.com/s150238/images/logog.jpg?t=159537" alt="NTS Radio 1" />
+      <button id="play-pause-1" class="play-button">▶</button>
+    </div>
+
+    <div class="button-container">
+      <img id="station-image-2" class="station-image" src="https://cdn-profiles.tunein.com/s286827/images/logog.jpg?t=159537" alt="NTS Radio 2" />
+      <button id="play-pause-2" class="play-button">▶</button>
+    </div>
+  </div>
+
+  <audio id="audio-player" controls>
+    <source src="" type="audio/mp3" />
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    const playPauseButton1 = document.getElementById('play-pause-1');
+    const playPauseButton2 = document.getElementById('play-pause-2');
+    const audioPlayer = document.getElementById('audio-player');
+    const stationName = document.getElementById('station-name');
+    const stationImage1 = document.getElementById('station-image-1');
+    const stationImage2 = document.getElementById('station-image-2');
+
+    function togglePlayPause(button, station, source, image) {
+      if (audioPlayer.src !== source) {
+        audioPlayer.pause();
+
+        // Reset both buttons
+        playPauseButton1.textContent = '▶';
+        playPauseButton2.textContent = '▶';
+
+        // Set new station
+        audioPlayer.src = source;
+        audioPlayer.load();
+        audioPlayer.play();
+
+        // Update text and visuals
+        stationName.textContent = station;
+        stationImage1.style.opacity = 1;
+        stationImage2.style.opacity = 1;
+        image.style.opacity = 0.85;
+        button.textContent = '❚❚';
+      } else {
+        if (audioPlayer.paused) {
+          audioPlayer.play();
+          button.textContent = '❚❚';
+        } else {
+          audioPlayer.pause();
+          button.textContent = '▶';
+        }
+      }
+    }
+
+    playPauseButton1.addEventListener('click', function () {
+      togglePlayPause(playPauseButton1, 'NTS Radio 1', 'https://stream-relay-geo.ntslive.net/stream', stationImage1);
+    });
+
+    playPauseButton2.addEventListener('click', function () {
+      togglePlayPause(playPauseButton2, 'NTS Radio 2', 'https://stream-relay-geo.ntslive.net/stream2', stationImage2);
+    });
+  </script>
+</body>
+</html>

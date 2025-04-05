@@ -1,2 +1,0 @@
-# NTSBlackberry
-NTSBlackberry
