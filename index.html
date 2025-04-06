@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NTS Radio Stream</title>
   <style>
     * {
@@ -29,8 +30,17 @@
       color: red;
       font-weight: bold;
       font-size: 1.8rem;
-      margin-bottom: 20px;
+      margin-bottom: 5px;
       display: block;
+      min-height: 2.5rem;
+    }
+
+    #artist-name {
+      color: white;
+      font-size: 1.2rem;
+      display: block;
+      margin-bottom: 20px;
+      min-height: 1.5rem;
     }
 
     .stations-wrapper {
@@ -52,6 +62,8 @@
 
     .station-image {
       width: 100%;
+      height: 300px;
+      object-fit: cover;
       border-radius: 10px;
       display: block;
     }
@@ -61,19 +73,16 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background-color: rgba(255, 99, 71, 0.8);
+      background: transparent;
       color: white;
       border: none;
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      font-size: 24px;
+      font-size: 48px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
 
     button:hover {
-      background-color: rgba(255, 99, 71, 1);
+      color: #ccc;
     }
 
     audio {
@@ -86,21 +95,34 @@
         flex-direction: row;
         overflow-x: auto;
       }
+
+      .station-image {
+        height: 200px;
+      }
+
+      button {
+        font-size: 36px;
+      }
     }
   </style>
 </head>
+
 <body>
+
   <div class="now-playing">Now Playing:</div>
   <span id="station-name">NTS Radio 1</span>
+  <span id="artist-name"></span>
 
   <div class="stations-wrapper">
     <div class="button-container">
-      <img id="station-image-1" class="station-image" src="https://cdn-profiles.tunein.com/s150238/images/logog.jpg?t=159537" alt="NTS Radio 1" />
+      <img id="station-image-1" class="station-image" src="https://cdn-profiles.tunein.com/s150238/images/logog.jpg"
+        alt="NTS Radio 1" />
       <button id="play-pause-1" class="play-button">▶</button>
     </div>
 
     <div class="button-container">
-      <img id="station-image-2" class="station-image" src="https://cdn-profiles.tunein.com/s286827/images/logog.jpg?t=159537" alt="NTS Radio 2" />
+      <img id="station-image-2" class="station-image" src="https://cdn-profiles.tunein.com/s286827/images/logog.jpg"
+        alt="NTS Radio 2" />
       <button id="play-pause-2" class="play-button">▶</button>
     </div>
   </div>
@@ -114,47 +136,93 @@
     const playPauseButton1 = document.getElementById('play-pause-1');
     const playPauseButton2 = document.getElementById('play-pause-2');
     const audioPlayer = document.getElementById('audio-player');
-    const stationName = document.getElementById('station-name');
+    const stationNameElement = document.getElementById('station-name');
+    const artistNameElement = document.getElementById('artist-name');
     const stationImage1 = document.getElementById('station-image-1');
     const stationImage2 = document.getElementById('station-image-2');
 
-    function togglePlayPause(button, station, source, image) {
-      if (audioPlayer.src !== source) {
-        audioPlayer.pause();
+    let currentStation = 1;
 
-        // Reset both buttons
+    const stationData = {
+      1: { name: 'NTS Radio 1', stream: 'https://stream-relay-geo.ntslive.net/stream' },
+      2: { name: 'NTS Radio 2', stream: 'https://stream-relay-geo.ntslive.net/stream2' }
+    };
+
+    const fallbackImages = {
+      1: 'https://cdn-profiles.tunein.com/s150238/images/logog.jpg',
+      2: 'https://cdn-profiles.tunein.com/s286827/images/logog.jpg'
+    };
+
+    function updateImagesXHR() {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', 'https://www.nts.live/api/v2/live', true);
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            data.results.forEach(function (ch) {
+              const stationNum = ch.channel_name === "1" ? 1 : 2;
+              const imgElement = document.getElementById('station-image-' + stationNum);
+
+              if (ch.now?.embeds?.details?.media?.picture_medium_large) {
+                imgElement.src = ch.now.embeds.details.media.picture_medium_large;
+              }
+
+              if (stationNum === currentStation) {
+                const broadcastTitle = ch.now?.broadcast_title || 'Unknown Artist';
+                stationNameElement.textContent = `NTS Radio ${stationNum}`;
+                artistNameElement.textContent = broadcastTitle;
+              }
+            });
+          } catch (e) {
+            console.error("Error parsing JSON", e);
+          }
+        }
+      };
+      xhr.send();
+    }
+
+    stationImage1.onerror = function () {
+      this.src = fallbackImages[1];
+    };
+    stationImage2.onerror = function () {
+      this.src = fallbackImages[2];
+    };
+
+    function togglePlayPause(button, stationNumber) {
+      const station = stationData[stationNumber];
+
+      if (audioPlayer.src !== station.stream || audioPlayer.paused) {
+        audioPlayer.pause();
         playPauseButton1.textContent = '▶';
         playPauseButton2.textContent = '▶';
-
-        // Set new station
-        audioPlayer.src = source;
+        audioPlayer.src = station.stream;
         audioPlayer.load();
         audioPlayer.play();
-
-        // Update text and visuals
-        stationName.textContent = station;
-        stationImage1.style.opacity = 1;
-        stationImage2.style.opacity = 1;
-        image.style.opacity = 0.85;
+        currentStation = stationNumber;
+        stationImage1.style.opacity = stationNumber === 1 ? 0.85 : 1;
+        stationImage2.style.opacity = stationNumber === 2 ? 0.85 : 1;
         button.textContent = '❚❚';
+        updateImagesXHR();
       } else {
-        if (audioPlayer.paused) {
-          audioPlayer.play();
-          button.textContent = '❚❚';
-        } else {
-          audioPlayer.pause();
-          button.textContent = '▶';
-        }
+        audioPlayer.pause();
+        button.textContent = '▶';
       }
     }
 
     playPauseButton1.addEventListener('click', function () {
-      togglePlayPause(playPauseButton1, 'NTS Radio 1', 'https://stream-relay-geo.ntslive.net/stream', stationImage1);
+      togglePlayPause(playPauseButton1, 1);
     });
 
     playPauseButton2.addEventListener('click', function () {
-      togglePlayPause(playPauseButton2, 'NTS Radio 2', 'https://stream-relay-geo.ntslive.net/stream2', stationImage2);
+      togglePlayPause(playPauseButton2, 2);
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+      updateImagesXHR();
+      setInterval(updateImagesXHR, 300000); // every 5 mins
     });
   </script>
 </body>
+
 </html>
