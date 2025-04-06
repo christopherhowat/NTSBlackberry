@@ -160,7 +160,7 @@
 
               if (stationNum === currentStation) {
                 const broadcastTitle = ch.now?.broadcast_title || 'Unknown Artist';
-                stationNameElement.textContent = `NTS Radio ${stationNum}: ${broadcastTitle}`;
+                stationNameElement.textContent = broadcastTitle; // Just update this
               }
             });
           } catch (e) {
