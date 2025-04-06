@@ -31,6 +31,7 @@
       font-size: 1.8rem;
       margin-bottom: 20px;
       display: block;
+      min-height: 2.5rem;
     }
 
     .stations-wrapper {
@@ -52,6 +53,8 @@
 
     .station-image {
       width: 100%;
+      height: 300px;
+      object-fit: cover;
       border-radius: 10px;
       display: block;
     }
@@ -61,19 +64,19 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background-color: rgba(255, 99, 71, 0.8);
+      background: transparent;
       color: white;
       border: none;
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      font-size: 24px;
+      width: auto;
+      height: auto;
+      font-size: 48px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      text-shadow: 0 0 10px rgba(0,0,0,0.5);
+      padding: 0;
     }
 
     button:hover {
-      background-color: rgba(255, 99, 71, 1);
+      color: #ccc;
     }
 
     audio {
@@ -85,6 +88,12 @@
         flex-wrap: nowrap;
         flex-direction: row;
         overflow-x: auto;
+      }
+      .station-image {
+        height: 200px;
+      }
+      button {
+        font-size: 36px;
       }
     }
   </style>
@@ -118,42 +127,87 @@
     const stationImage1 = document.getElementById('station-image-1');
     const stationImage2 = document.getElementById('station-image-2');
 
-    function togglePlayPause(button, station, source, image) {
-      if (audioPlayer.src !== source) {
-        audioPlayer.pause();
+    let currentStation = 1;
+    const stationData = {
+      1: { name: 'NTS Radio 1', stream: 'https://stream-relay-geo.ntslive.net/stream' },
+      2: { name: 'NTS Radio 2', stream: 'https://stream-relay-geo.ntslive.net/stream2' }
+    };
 
-        // Reset both buttons
-        playPauseButton1.textContent = '▶';
-        playPauseButton2.textContent = '▶';
+    const fallbackImages = {
+      1: 'https://cdn-profiles.tunein.com/s150238/images/logog.jpg',
+      2: 'https://cdn-profiles.tunein.com/s286827/images/logog.jpg'
+    };
 
-        // Set new station
-        audioPlayer.src = source;
-        audioPlayer.load();
-        audioPlayer.play();
-
-        // Update text and visuals
-        stationName.textContent = station;
-        stationImage1.style.opacity = 1;
-        stationImage2.style.opacity = 1;
-        image.style.opacity = 0.85;
-        button.textContent = '❚❚';
-      } else {
-        if (audioPlayer.paused) {
-          audioPlayer.play();
-          button.textContent = '❚❚';
-        } else {
-          audioPlayer.pause();
-          button.textContent = '▶';
+    async function updateAllStationImages() {
+      try {
+        const response = await fetch('https://www.nts.live/api/v2/live');
+        const data = await response.json();
+        
+        // Update Radio 1
+        const radio1Show = data.results.find(show => show.channel_name === "1")?.now;
+        if (radio1Show?.embeds?.details?.media?.picture_medium_large) {
+          stationImage1.src = radio1Show.embeds.details.media.picture_medium_large;
         }
+        
+        // Update Radio 2
+        const radio2Show = data.results.find(show => show.channel_name === "2")?.now;
+        if (radio2Show?.embeds?.details?.media?.picture_medium_large) {
+          stationImage2.src = radio2Show.embeds.details.media.picture_medium_large;
+        }
+        
+        // Update current station name
+        if (currentStation === 1 && radio1Show) {
+          stationName.textContent = `${stationData[1].name}: ${radio1Show.broadcast_title}`;
+        } else if (currentStation === 2 && radio2Show) {
+          stationName.textContent = `${stationData[2].name}: ${radio2Show.broadcast_title}`;
+        }
+        
+      } catch (error) {
+        console.error("Error updating station images:", error);
       }
     }
 
-    playPauseButton1.addEventListener('click', function () {
-      togglePlayPause(playPauseButton1, 'NTS Radio 1', 'https://stream-relay-geo.ntslive.net/stream', stationImage1);
+    stationImage1.onerror = function() {
+      this.src = fallbackImages[1];
+    };
+    
+    stationImage2.onerror = function() {
+      this.src = fallbackImages[2];
+    };
+
+    function togglePlayPause(button, stationNumber, imageElement) {
+      const station = stationData[stationNumber];
+      
+      if (audioPlayer.src !== station.stream || audioPlayer.paused) {
+        audioPlayer.pause();
+        playPauseButton1.textContent = '▶';
+        playPauseButton2.textContent = '▶';
+        audioPlayer.src = station.stream;
+        audioPlayer.load();
+        audioPlayer.play();
+        currentStation = stationNumber;
+        stationImage1.style.opacity = stationNumber === 1 ? 0.85 : 1;
+        stationImage2.style.opacity = stationNumber === 2 ? 0.85 : 1;
+        button.textContent = '❚❚';
+        updateAllStationImages(); // Refresh both images when switching
+      } else {
+        audioPlayer.pause();
+        button.textContent = '▶';
+      }
+    }
+
+    playPauseButton1.addEventListener('click', function() {
+      togglePlayPause(playPauseButton1, 1, stationImage1);
     });
 
-    playPauseButton2.addEventListener('click', function () {
-      togglePlayPause(playPauseButton2, 'NTS Radio 2', 'https://stream-relay-geo.ntslive.net/stream2', stationImage2);
+    playPauseButton2.addEventListener('click', function() {
+      togglePlayPause(playPauseButton2, 2, stationImage2);
+    });
+
+    // Initialize both stations immediately
+    document.addEventListener('DOMContentLoaded', function() {
+      updateAllStationImages();
+      setInterval(updateAllStationImages, 300000); // Update every 5 minutes
     });
   </script>
 </body>
