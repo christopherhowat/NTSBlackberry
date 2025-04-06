@@ -65,26 +65,45 @@
       transition: opacity 0.3s ease; /* May not work on BB10 */
     }
 
-    button.play-button { /* Made selector more specific */
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%); /* Should work on BB10 */
-      background: transparent; /* Should work on BB10 */
-      color: white;
-      border: none;
-      font-size: 48px;
-      cursor: pointer;
-      text-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* May not work on BB10 */
-      border-radius: 0%; /* Should work on BB10 */
-      width: 70px; /* Fixed size */
-      height: 70px; /* Fixed size */
-      line-height: 70px; /* Center symbol vertically */
-      padding: 0; /* Remove default padding */
-      display: flex; /* Should work on BB10 */
-      align-items: center; /* Should work on BB10 */
-      justify-content: center; /* Should work on BB10 */
-    }
+/* General styles for the play/pause button */
+button.play-button, button.pause-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: transparent; /* Ensure no background */
+  color: white; /* Icon color */
+  border: none; /* Remove any borders */
+  font-size: 48px; /* Icon size */
+  cursor: pointer;
+  padding: 0; /* Remove padding */
+  width: 60px; /* Set a fixed width for the button */
+  height: 60px; /* Set a fixed height for the button */
+  display: flex; /* Use flexbox for easy centering */
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%; /* Make it circular */
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Optional: Add a shadow to the icon */
+  outline: none; /* Remove the outline */
+}
+
+button.play-button {
+  font-size: 48px; /* Size for the play icon */
+}
+
+button.pause-button {
+  font-size: 48px; /* Size for the pause icon */
+}
+
+/* Ensure icons are centered and have the same size */
+.play-button i, .pause-button i {
+  width: 100%; /* Ensure icon takes full width */
+  height: 100%; /* Ensure icon takes full height */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+ 
 
     button.play-button:hover {
       background: transparent; /* Darken on hover */
