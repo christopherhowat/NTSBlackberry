@@ -30,17 +30,9 @@
       color: red;
       font-weight: bold;
       font-size: 1.8rem;
-      margin-bottom: 5px;
+      margin-bottom: 20px;
       display: block;
       min-height: 2.5rem;
-    }
-
-    #artist-name {
-      color: white;
-      font-size: 1.2rem;
-      display: block;
-      margin-bottom: 20px;
-      min-height: 1.5rem;
     }
 
     .stations-wrapper {
@@ -111,7 +103,6 @@
 
   <div class="now-playing">Now Playing:</div>
   <span id="station-name">NTS Radio 1</span>
-  <span id="artist-name"></span>
 
   <div class="stations-wrapper">
     <div class="button-container">
@@ -137,7 +128,6 @@
     const playPauseButton2 = document.getElementById('play-pause-2');
     const audioPlayer = document.getElementById('audio-player');
     const stationNameElement = document.getElementById('station-name');
-    const artistNameElement = document.getElementById('artist-name');
     const stationImage1 = document.getElementById('station-image-1');
     const stationImage2 = document.getElementById('station-image-2');
 
@@ -170,8 +160,7 @@
 
               if (stationNum === currentStation) {
                 const broadcastTitle = ch.now?.broadcast_title || 'Unknown Artist';
-                stationNameElement.textContent = `NTS Radio ${stationNum}`;
-                artistNameElement.textContent = broadcastTitle;
+                stationNameElement.textContent = `NTS Radio ${stationNum}: ${broadcastTitle}`;
               }
             });
           } catch (e) {
