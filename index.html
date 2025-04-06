@@ -1,217 +1,145 @@
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NTS Radio Stream</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     body {
-      font-family: 'Arial', sans-serif;
+      font-family: Arial, sans-serif;
       text-align: center;
+      background: black;
+      color: white;
       margin-top: 30px;
-      background-color: black;
-      color: white;
     }
-
     .now-playing {
-      color: white;
       font-size: 2rem;
-      margin-bottom: 5px;
+      margin-bottom: 10px;
     }
-
     #station-name {
       color: red;
-      font-weight: bold;
-      font-size: 1.8rem;
+      font-size: 1.5rem;
       margin-bottom: 20px;
-      display: block;
-      min-height: 2.5rem;
     }
-
     .stations-wrapper {
       display: flex;
-      flex-direction: row;
       justify-content: center;
-      align-items: flex-start;
       flex-wrap: wrap;
       gap: 20px;
-      padding: 0 10px;
     }
-
     .button-container {
       position: relative;
-      width: 100%;
-      max-width: 300px;
-      flex: 1 1 300px;
+      width: 280px;
     }
-
     .station-image {
       width: 100%;
-      height: 300px;
+      height: 250px;
       object-fit: cover;
       border-radius: 10px;
-      display: block;
     }
-
     button {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
+      font-size: 40px;
       background: transparent;
       color: white;
       border: none;
-      font-size: 48px;
       cursor: pointer;
-      text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
-
-    button:hover {
-      color: #ccc;
-    }
-
-    audio {
-      display: none;
-    }
-
-    @media (max-width: 640px) {
-      .stations-wrapper {
-        flex-wrap: nowrap;
-        flex-direction: row;
-        overflow-x: auto;
-      }
-
-      .station-image {
-        height: 200px;
-      }
-
-      button {
-        font-size: 36px;
-      }
-    }
+    audio { display: none; }
   </style>
 </head>
-
 <body>
 
-  <div class="now-playing">Now Playing:</div>
-  <span id="station-name">NTS Radio 1</span>
+<div class="now-playing">Now Playing:</div>
+<div id="station-name">NTS Radio</div>
 
-  <div class="stations-wrapper">
-    <div class="button-container">
-      <img id="station-image-1" class="station-image" src="https://cdn-profiles.tunein.com/s150238/images/logog.jpg"
-        alt="NTS Radio 1" />
-      <button id="play-pause-1" class="play-button">▶</button>
-    </div>
-
-    <div class="button-container">
-      <img id="station-image-2" class="station-image" src="https://cdn-profiles.tunein.com/s286827/images/logog.jpg"
-        alt="NTS Radio 2" />
-      <button id="play-pause-2" class="play-button">▶</button>
-    </div>
+<div class="stations-wrapper">
+  <div class="button-container">
+    <img id="station-image-1" class="station-image" src="https://cdn-profiles.tunein.com/s150238/images/logog.jpg" />
+    <button id="play-pause-1">▶</button>
   </div>
+  <div class="button-container">
+    <img id="station-image-2" class="station-image" src="https://cdn-profiles.tunein.com/s286827/images/logog.jpg" />
+    <button id="play-pause-2">▶</button>
+  </div>
+</div>
 
-  <audio id="audio-player" controls>
-    <source src="" type="audio/mp3" />
-    Your browser does not support the audio element.
-  </audio>
+<audio id="audio-player">
+  <source src="" type="audio/mpeg" />
+</audio>
 
-  <script>
-    const playPauseButton1 = document.getElementById('play-pause-1');
-    const playPauseButton2 = document.getElementById('play-pause-2');
-    const audioPlayer = document.getElementById('audio-player');
-    const stationNameElement = document.getElementById('station-name');
-    const stationImage1 = document.getElementById('station-image-1');
-    const stationImage2 = document.getElementById('station-image-2');
+<script>
+  var audio = document.getElementById('audio-player');
+  var stationName = document.getElementById('station-name');
+  var btn1 = document.getElementById('play-pause-1');
+  var btn2 = document.getElementById('play-pause-2');
 
-    let currentStation = 1;
+  var streams = {
+    1: 'https://stream-relay-geo.ntslive.net/stream',
+    2: 'https://stream-relay-geo.ntslive.net/stream2'
+  };
 
-    const stationData = {
-      1: { name: 'NTS Radio 1', stream: 'https://stream-relay-geo.ntslive.net/stream' },
-      2: { name: 'NTS Radio 2', stream: 'https://stream-relay-geo.ntslive.net/stream2' }
-    };
+  function playStation(station, button) {
+    if (audio.src !== streams[station] || audio.paused) {
+      audio.pause();
+      audio.src = streams[station];
+      audio.load();
+      audio.play();
 
-    const fallbackImages = {
-      1: 'https://cdn-profiles.tunein.com/s150238/images/logog.jpg',
-      2: 'https://cdn-profiles.tunein.com/s286827/images/logog.jpg'
-    };
+      btn1.textContent = '▶';
+      btn2.textContent = '▶';
+      button.textContent = '❚❚';
 
-    function updateImagesXHR() {
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', 'https://www.nts.live/api/v2/live', true);
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
+      stationName.textContent = 'NTS Radio ' + station;
+    } else {
+      audio.pause();
+      button.textContent = '▶';
+    }
+  }
+
+  btn1.onclick = function () { playStation(1, btn1); };
+  btn2.onclick = function () { playStation(2, btn2); };
+
+  // Load images with XMLHttpRequest (for older browser compatibility)
+  function updateImagesXHR() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'https://www.nts.live/api/v2/live', true);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
           try {
-            const data = JSON.parse(xhr.responseText);
-            data.results.forEach(function (ch) {
-              const stationNum = ch.channel_name === "1" ? 1 : 2;
-              const imgElement = document.getElementById('station-image-' + stationNum);
+            var data = JSON.parse(xhr.responseText);
+            var results = data.results;
 
-              if (ch.now?.embeds?.details?.media?.picture_medium_large) {
-                imgElement.src = ch.now.embeds.details.media.picture_medium_large;
+            for (var i = 0; i < results.length; i++) {
+              var ch = results[i];
+              if (ch.channel_name === "1" && ch.now && ch.now.embeds && ch.now.embeds.details) {
+                var img1 = ch.now.embeds.details.media.picture_medium_large;
+                if (img1) document.getElementById('station-image-1').src = img1;
               }
-
-              if (stationNum === currentStation) {
-                const broadcastTitle = ch.now?.broadcast_title || 'Unknown Artist';
-                stationNameElement.textContent = broadcastTitle; // Just update this
+              if (ch.channel_name === "2" && ch.now && ch.now.embeds && ch.now.embeds.details) {
+                var img2 = ch.now.embeds.details.media.picture_medium_large;
+                if (img2) document.getElementById('station-image-2').src = img2;
               }
-            });
+            }
           } catch (e) {
-            console.error("Error parsing JSON", e);
+            console.log('Failed to parse image update:', e);
           }
+        } else {
+          console.log('Image request failed. Status:', xhr.status);
         }
-      };
-      xhr.send();
-    }
-
-    stationImage1.onerror = function () {
-      this.src = fallbackImages[1];
-    };
-    stationImage2.onerror = function () {
-      this.src = fallbackImages[2];
-    };
-
-    function togglePlayPause(button, stationNumber) {
-      const station = stationData[stationNumber];
-
-      if (audioPlayer.src !== station.stream || audioPlayer.paused) {
-        audioPlayer.pause();
-        playPauseButton1.textContent = '▶';
-        playPauseButton2.textContent = '▶';
-        audioPlayer.src = station.stream;
-        audioPlayer.load();
-        audioPlayer.play();
-        currentStation = stationNumber;
-        stationImage1.style.opacity = stationNumber === 1 ? 0.85 : 1;
-        stationImage2.style.opacity = stationNumber === 2 ? 0.85 : 1;
-        button.textContent = '❚❚';
-        updateImagesXHR();
-      } else {
-        audioPlayer.pause();
-        button.textContent = '▶';
       }
-    }
+    };
+    xhr.send();
+  }
 
-    playPauseButton1.addEventListener('click', function () {
-      togglePlayPause(playPauseButton1, 1);
-    });
+  // Run on page load
+  updateImagesXHR();
+  setInterval(updateImagesXHR, 300000); // every 5 min
+</script>
 
-    playPauseButton2.addEventListener('click', function () {
-      togglePlayPause(playPauseButton2, 2);
-    });
-
-    document.addEventListener('DOMContentLoaded', function () {
-      updateImagesXHR();
-      setInterval(updateImagesXHR, 300000); // every 5 mins
-    });
-  </script>
 </body>
-
 </html>
